@@ -6,6 +6,9 @@ autoinstall:
     password: "<REPLACE_WITH_SHA512_HASH>"
     realname: Zachary Baca
     username: zach
+  ssh:
+    install-server: true
+    allow-pw: false
   keyboard:
     layout: us
   locale: en_US.UTF-8
@@ -28,6 +31,8 @@ autoinstall:
     - jq
     - tmux
     - zsh
+    - dkms
+    - apt-transport-https
   late-commands:
     - curtin in-target -- sh -c 'wget -qO - https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/linux-surface.gpg'
     - curtin in-target -- sh -c 'echo "deb [arch=amd64] https://pkg.surfacelinux.com/debian release main" > /etc/apt/sources.list.d/linux-surface.list'
