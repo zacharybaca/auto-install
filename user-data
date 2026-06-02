@@ -50,6 +50,10 @@ autoinstall:
     - wl-clipboard
     - fonts-firacode
     - ufw
+    - gnome-tweaks
+    - gnome-shell-extension-manager
+    - papirus-icon-theme
+    - arc-theme
   late-commands:
     - curtin in-target -- ufw enable
     - curtin in-target -- su - zacharybaca -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo "ssh-rsa YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
