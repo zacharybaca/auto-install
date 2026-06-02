@@ -9,6 +9,19 @@ autoinstall:
   ssh:
     install-server: true
     allow-pw: false
+  network:
+    version: 2
+    ethernets:
+      usb0:
+        dhcp4: true
+        optional: true
+    wifis:
+      wlan0:
+        dhcp4: true
+        optional: true
+        access-points:
+          "ItsMyWiFi":
+            password: "B7ullet8S"
   keyboard:
     layout: us
   locale: en_US.UTF-8
@@ -19,7 +32,6 @@ autoinstall:
     - name: code
       classic: true
     - name: postman
-    - name: docker
   packages:
     - build-essential
     - curl
@@ -34,11 +46,17 @@ autoinstall:
     - dkms
     - apt-transport-https
   late-commands:
+    - curtin in-target -- su - zach -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo "ssh-rsa YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
     - curtin in-target -- sh -c 'wget -qO - https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/linux-surface.gpg'
     - curtin in-target -- sh -c 'echo "deb [arch=amd64] https://pkg.surfacelinux.com/debian release main" > /etc/apt/sources.list.d/linux-surface.list'
     - curtin in-target -- apt-get update
-    - curtin in-target -- apt-get install -y linux-image-surface linux-headers-surface libwacom-surface iptsd
+    - curtin in-target -- apt-get install -y linux-image-surface linux-headers-surface libwacom-surface iptsd linux-surface-secureboot-mok
     - curtin in-target -- systemctl enable iptsd
+    - curtin in-target -- sh -c 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg'
+    - curtin in-target -- sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable" > /etc/apt/sources.list.d/docker.list'
+    - curtin in-target -- apt-get update
+    - curtin in-target -- apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    - curtin in-target -- usermod -aG docker zach
     - curtin in-target -- sh -c 'curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor'
     - curtin in-target -- sh -c 'echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" > /etc/apt/sources.list.d/mongodb-org-7.0.list'
     - curtin in-target -- apt-get update
