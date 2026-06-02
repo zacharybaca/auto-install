@@ -45,22 +45,30 @@ autoinstall:
     - zsh
     - dkms
     - apt-transport-https
+    - ripgrep
+    - bat
+    - wl-clipboard
+    - fonts-firacode
+    - ufw
   late-commands:
-    - curtin in-target -- su - zach -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo "ssh-rsa YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
+    - curtin in-target -- ufw enable
+    - curtin in-target -- su - zacharybaca -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo "ssh-rsa YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
     - curtin in-target -- sh -c 'wget -qO - https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/linux-surface.gpg'
     - curtin in-target -- sh -c 'echo "deb [arch=amd64] https://pkg.surfacelinux.com/debian release main" > /etc/apt/sources.list.d/linux-surface.list'
     - curtin in-target -- apt-get update
-    - curtin in-target -- apt-get install -y linux-image-surface linux-headers-surface libwacom-surface iptsd linux-surface-secureboot-mok
+    - curtin in-target -- apt-get install -y linux-image-surface linux-headers-surface libwacom-surface iptsd linux-surface-secureboot-mok surface-control
     - curtin in-target -- systemctl enable iptsd
     - curtin in-target -- sh -c 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg'
     - curtin in-target -- sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable" > /etc/apt/sources.list.d/docker.list'
     - curtin in-target -- apt-get update
     - curtin in-target -- apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-    - curtin in-target -- usermod -aG docker zach
+    - curtin in-target -- usermod -aG docker zacharybaca
     - curtin in-target -- sh -c 'curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor'
     - curtin in-target -- sh -c 'echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" > /etc/apt/sources.list.d/mongodb-org-7.0.list'
     - curtin in-target -- apt-get update
     - curtin in-target -- apt-get install -y mongodb-org
     - curtin in-target -- systemctl enable mongod
-    - curtin in-target -- su - zach -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
-    - curtin in-target -- su - zach -c 'export NVM_DIR="/home/zach/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm install --lts && npm install -g typescript ts-node nodemon pm2 yarn'
+    - curtin in-target -- su - zacharybaca -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
+    - curtin in-target -- su - zacharybaca -c 'export NVM_DIR="/home/zacharybaca/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm install --lts && npm install -g typescript ts-node nodemon pm2 yarn @angular/cli'
+    - curtin in-target -- su - zacharybaca -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+    - curtin in-target -- chsh -s /usr/bin/zsh zacharybaca
