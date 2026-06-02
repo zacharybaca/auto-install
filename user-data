@@ -3,7 +3,7 @@ autoinstall:
   version: 1
   identity:
     hostname: surface-laptop
-    password: "<REPLACE_WITH_SHA512_HASH>"
+    password: $6$rkd3oG5euISAIjRL$R7lztO14helIfbF0wLZ0YAVLlVMSMX8NuOQyLdlxnIJhxNrhOAG3s30OOlhIQrrsXTtpQgsEDr8MdT4aQaHHS0
     realname: Zachary Baca
     username: zach
   ssh:
