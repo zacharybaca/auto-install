@@ -29,7 +29,7 @@ This repository contains an unattended Ubuntu installation configuration (`user-
   - **USB-A #2** — Autoinstall config drive (any size ≥ 64 MB); or you can serve the config over HTTP
 - A USB-A hub or USB-C adapter (the Surface Laptop 4 AMD has one USB-A and one USB-C port)
 - Internet connection during installation (Wi-Fi is configured automatically)
-- The Surface Laptop 4's UEFI Secure Boot keys must be enrolled for the Surface kernel Secure Boot MOK (handled automatically by the installer)
+- The Surface Laptop 4's UEFI Secure Boot keys must be enrolled for the Surface kernel Secure Boot MOK. **This requires a manual interactive step** at the blue MOK Manager screen on the first reboot after installation (see Step 6).
 
 ---
 
@@ -42,8 +42,8 @@ Open `user-data` and update every placeholder before you put it on a USB drive. 
 ```yaml
 identity:
   hostname: surface-laptop        # change to whatever you want
-  realname: Zachary Baca          # your full name
-  username: zacharybaca           # your login username
+  realname: Your Full Name        # your full name
+  username: yourusername          # your login username
   password: '$6$...'              # hashed password — see below
 ```
 
@@ -65,7 +65,7 @@ wifis:
         password: "YourWiFiPassword"   # replace with your Wi-Fi password
 ```
 
-> ⚠️ **Security:** `user-data` stores your Wi-Fi password in plaintext. **Do not commit this file to a public repository.** After installation, securely delete the `CIDATA` USB or overwrite the file.
+> ⚠️ **Security:** `user-data` stores your Wi-Fi password in plaintext. **Do not commit a file containing real credentials to a public repository.** To keep a personalized copy locally without accidentally committing it, copy the template to `user-data.local` (already covered by `.gitignore`) and work from that file. After installation, securely delete the `CIDATA` USB or overwrite the file.
 
 ### 1c. Set a strong LUKS disk-encryption passphrase
 
@@ -83,10 +83,10 @@ Choose a strong, memorable passphrase — you will need to type it on every boot
 
 ```yaml
 late-commands:
-  - curtin in-target -- su - zacharybaca -c '... echo "ssh-rsa YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys ...'
+  - curtin in-target -- su - yourusername -c '... echo "ssh-ed25519 YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys ...'
 ```
 
-Replace `YOUR_PUBLIC_KEY_HERE` with the full content of your `~/.ssh/id_rsa.pub` or `~/.ssh/id_ed25519.pub`. If you don't have one yet, generate it on your other machine first:
+Replace the entire `ssh-ed25519 YOUR_PUBLIC_KEY_HERE` placeholder with the full public-key line from `~/.ssh/id_ed25519.pub` (the complete line starting with `ssh-ed25519`). If you don't have one yet, generate it on your other machine first:
 
 ```bash
 ssh-keygen -t ed25519 -C "your@email.com"
@@ -95,7 +95,7 @@ cat ~/.ssh/id_ed25519.pub
 
 ### 1e. (Optional) Change the username throughout `user-data`
 
-If you changed `username` in the `identity` block, do a find-and-replace for `zacharybaca` across the entire file so that paths like `/home/zacharybaca/.nvm` and `usermod` commands reference the correct user.
+If you changed `username` in the `identity` block, do a find-and-replace for `yourusername` across the entire file so that paths like `/home/yourusername/.nvm` and `usermod` commands reference the correct user.
 
 ---
 
@@ -153,12 +153,12 @@ The Ubuntu installer looks for autoinstall configuration on a drive labeled **`C
 ### On Linux
 
 ```bash
-# Create a FAT32 filesystem labeled CIDATA
-sudo mkfs.vfat -n CIDATA /dev/sdY   # replace sdY with your second USB drive
+# Create a FAT32 filesystem labeled CIDATA on the first partition
+sudo mkfs.vfat -F 32 -n CIDATA /dev/sdY1   # replace sdY1 with your second USB drive's first partition
 
 # Mount it
 sudo mkdir -p /mnt/cidata
-sudo mount /dev/sdY /mnt/cidata
+sudo mount /dev/sdY1 /mnt/cidata
 
 # Copy the files
 sudo cp user-data /mnt/cidata/user-data
