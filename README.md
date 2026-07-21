@@ -62,7 +62,7 @@ wifis:
   wlan0:
     access-points:
       "ItsMyWiFi":          # replace with your SSID
-        password: "B7ullet8S"   # replace with your Wi-Fi password
+        password: "YourWiFiPassword"   # replace with your Wi-Fi password
 ```
 
 ### 1c. Set a strong LUKS disk-encryption passphrase
@@ -198,17 +198,13 @@ diskutil eject /dev/diskN
 2. Power on the Surface. It should boot directly from USB #1.
 3. At the GRUB menu that appears, you have two options:
 
-   **Option A — Fully unattended (recommended):**
+   **Option A — Manually trigger autoinstall via GRUB:**
    - Highlight **"Try or Install Ubuntu"** and press **`e`** to edit the boot entry.
-   - Find the line starting with `linux` and append the following to the end of that line (before the `---`):
-     ```
-     autoinstall ds=nocloud;seedfrom=/cdrom/
-     ```
-     Wait — this won't work because the seed is on USB #2, not the CD-ROM. Instead append:
+   - Find the line starting with `linux` and append the following to the end of that line (before `---`):
      ```
      autoinstall ds=nocloud
      ```
-     The installer will automatically scan for a drive labeled `CIDATA`.
+     The installer will scan all attached drives for one labeled `CIDATA`.
    - Press **Ctrl+X** or **F10** to boot.
 
    **Option B — Let the installer detect CIDATA automatically:**
