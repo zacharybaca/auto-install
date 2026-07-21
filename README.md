@@ -25,7 +25,7 @@ This repository contains an unattended Ubuntu installation configuration (`user-
 
 - A second computer to prepare the installation (Linux, macOS, or Windows)
 - One USB drive: Ubuntu 22.04 LTS installer ISO (≥ 4 GB)
-- A USB-C to ethernet adapter — the Surface Laptop 4 AMD has no built-in ethernet port; wired ethernet is required so the installer can reach the HTTP server that serves `user-data` and `meta-data`
+- A USB-C to ethernet adapter — the Surface Laptop 4 AMD has no built-in ethernet port; wired ethernet is required so the installer can reach your HTTP seed source (`user-data` + `meta-data`)
 - Internet connection during installation (Wi-Fi is configured automatically after the config is fetched)
 - The Surface Linux kernel requires a MOK (Machine Owner Key) to be enrolled for Secure Boot. **This requires an interactive step** at the blue MOK Manager screen on first reboot — selecting "Enroll MOK" and entering the enrollment password is not automatic.
 
@@ -185,28 +185,22 @@ Your seedfrom URL will be `http://<PREP_MACHINE_IP>:8000/` (trailing slash requi
 
 ---
 
-### Option B — GitHub Pages (public sanitized template)
+### Option B — GitHub Gist (hosted template)
 
-This repository now includes a GitHub Pages-friendly copy of the sanitized template in `/docs`. Once GitHub Pages is enabled with **Deploy from a branch** → **main** → **/docs**, the seed URL follows this pattern:
-
-```
-https://<OWNER>.github.io/<REPOSITORY>/
-```
-
-If you fork or rename the repository, replace `<OWNER>` and `<REPOSITORY>` accordingly. For this repository, the seed URL is:
+Create a Gist that contains exactly two files named `user-data` and `meta-data` (sanitized or private if it contains real credentials). Then use this seed URL pattern:
 
 ```
-https://zacharybaca.github.io/auto-install/
+http://gist.githubusercontent.com/<GIST_OWNER>/<GIST_ID>/raw/<REVISION>/
 ```
 
-Cloud-init will then fetch `user-data` and `meta-data` from that base URL. For this repository, that means:
+Cloud-init will fetch:
 
-- `https://zacharybaca.github.io/auto-install/user-data`
-- `https://zacharybaca.github.io/auto-install/meta-data`
+- `http://gist.githubusercontent.com/<GIST_OWNER>/<GIST_ID>/raw/<REVISION>/user-data`
+- `http://gist.githubusercontent.com/<GIST_OWNER>/<GIST_ID>/raw/<REVISION>/meta-data`
 
-Use the base URL with the trailing slash as your seedfrom value.
+Use the base URL with the trailing slash as your seedfrom value. GitHub will redirect the request to HTTPS automatically.
 
-> **Important:** This hosted copy is intentionally sanitized. Do not commit a personalized `user-data` file with real credentials to a public repository. If you need to host a filled-in version remotely, use a private location you control and remove it after installation.
+> **Important:** Do not commit a personalized `user-data` file with real credentials to a public repository. If you host a filled-in version in a Gist, keep it private/secret and delete it after installation.
 
 ---
 
@@ -227,7 +221,7 @@ In either case, note your seedfrom URL — you will enter it in the GRUB boot co
 
 ## Step 6 — Boot and Run the Installer
 
-1. Plug the Ubuntu installer USB into the Surface Laptop 4. Connect the USB-C ethernet adapter and plug in a network cable so the installer can reach your HTTP server.
+1. Plug the Ubuntu installer USB into the Surface Laptop 4. Connect the USB-C ethernet adapter and plug in a network cable so the installer can reach your seedfrom source (local HTTP server or Gist).
 2. Power on the Surface. It should boot directly from the USB.
 3. At the GRUB menu that appears, highlight **"Try or Install Ubuntu"** and press **`e`** to edit the boot entry.
 4. Find the line starting with `linux` and append the following to the end of that line (before `---`):
@@ -338,7 +332,7 @@ If you manage dotfiles with GNU Stow (installed by the autoinstall), clone your 
 
 | Problem | Fix |
 |---|---|
-| Installer doesn't fetch config (HTTP error) | Confirm the HTTP server is running and reachable from the Surface. Check your seedfrom URL matches the server IP and port exactly, including the trailing `/`. Verify wired ethernet is connected and the cable/adapter are working. |
+| Installer doesn't fetch config (HTTP error) | Confirm your seedfrom source is reachable from the Surface. If using a local server, make sure it is still running. If using a Gist, verify the URL includes `/raw/<REVISION>/` and a trailing `/`. Also verify wired ethernet is connected and working. |
 | Wi-Fi not connected during install | Double-check SSID and password in `user-data`. WPA2/WPA3 personal networks are supported; enterprise (802.1X) networks require additional configuration. |
 | LUKS password prompt doesn't appear | The display driver may not be loaded. Connect an external USB keyboard and try typing the passphrase blind — the display will appear once GNOME loads. |
 | Surface touch / stylus not working | Ensure `iptsd` is running: `sudo systemctl status iptsd`. The service is enabled by the installer. |
