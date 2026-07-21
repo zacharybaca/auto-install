@@ -200,6 +200,12 @@ Cloud-init will fetch:
 
 Use the base URL with the trailing slash as your seedfrom value. GitHub will redirect the request to HTTPS automatically.
 
+If you are using this repository's GitHub Pages-hosted files directly, the seedfrom URL is:
+
+```
+https://zacharybaca.github.io/auto-install/
+```
+
 > **Important:** Do not commit a personalized `user-data` file with real credentials to a public repository. If you host a filled-in version in a Gist, keep it private/secret and delete it after installation.
 
 ---
