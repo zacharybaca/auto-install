@@ -187,13 +187,19 @@ Your seedfrom URL will be `http://<PREP_MACHINE_IP>:8000/` (trailing slash requi
 
 ### Option B — GitHub Pages (public sanitized template)
 
-This repository now includes a GitHub Pages-friendly copy of the sanitized template in `/docs`. Once GitHub Pages is enabled for this repository with **Deploy from a branch** → **main** → **/docs**, the seed URL will be:
+This repository now includes a GitHub Pages-friendly copy of the sanitized template in `/docs`. Once GitHub Pages is enabled with **Deploy from a branch** → **main** → **/docs**, the seed URL follows this pattern:
+
+```
+https://<OWNER>.github.io/<REPOSITORY>/
+```
+
+If you fork or rename the repository, replace `<OWNER>` and `<REPOSITORY>` accordingly. For this repository, the seed URL is:
 
 ```
 https://zacharybaca.github.io/auto-install/
 ```
 
-Cloud-init will then fetch:
+Cloud-init will then fetch `user-data` and `meta-data` from that base URL. For this repository, that means:
 
 - `https://zacharybaca.github.io/auto-install/user-data`
 - `https://zacharybaca.github.io/auto-install/meta-data`
