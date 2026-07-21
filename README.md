@@ -95,7 +95,7 @@ cat ~/.ssh/id_ed25519.pub
 
 ### 1e. (Optional) Change the username throughout `user-data`
 
-If you changed `username` in the `identity` block, do a find-and-replace for `zacharybaca` across the entire file so that paths like `/home/zacharybaca/.nvm` and `usermod` commands reference the correct user.
+If you changed `username` in the `identity` block, do a find-and-replace for `yourusername` across the entire file so that paths like `/home/yourusername/.nvm` and `usermod` commands reference the correct user.
 
 ---
 
