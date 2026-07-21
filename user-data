@@ -70,7 +70,7 @@ autoinstall:
     - xdg-utils
   late-commands:
     - curtin in-target -- ufw allow ssh
-    - curtin in-target -- ufw enable
+    - curtin in-target -- ufw --force enable
     - curtin in-target -- systemctl enable fail2ban
     - curtin in-target -- su - yourusername -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo "ssh-ed25519 YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
     - curtin in-target -- sh -c 'wget -qO - https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/linux-surface.gpg'
@@ -78,6 +78,7 @@ autoinstall:
     - curtin in-target -- apt-get update
     - curtin in-target -- apt-get install -y linux-image-surface linux-headers-surface libwacom-surface iptsd linux-surface-secureboot-mok surface-control
     - curtin in-target -- systemctl enable iptsd
+    - curtin in-target -- install -d -m 0755 /etc/apt/keyrings
     - curtin in-target -- sh -c 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg'
     - curtin in-target -- sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu jammy stable" > /etc/apt/sources.list.d/docker.list'
     - curtin in-target -- apt-get update
@@ -89,9 +90,10 @@ autoinstall:
     - curtin in-target -- apt-get update
     - curtin in-target -- apt-get install -y mongodb-org
     - curtin in-target -- systemctl enable mongod
-    - curtin in-target -- su - yourusername -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
+    - curtin in-target -- su - yourusername -c 'git clone --branch v0.39.7 --depth 1 https://github.com/nvm-sh/nvm.git /home/yourusername/.nvm'
     - curtin in-target -- su - yourusername -c 'export NVM_DIR="/home/yourusername/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm install --lts && npm install -g typescript ts-node nodemon pm2 yarn @angular/cli prettier eslint http-server'
-    - curtin in-target -- su - yourusername -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+    - curtin in-target -- su - yourusername -c 'git clone https://github.com/ohmyzsh/ohmyzsh.git /home/yourusername/.oh-my-zsh && cd /home/yourusername/.oh-my-zsh && git checkout 98fe9b81a62ed75baf25cf23aa41e338a83bec6d && RUNZSH=no CHSH=no KEEP_ZSHRC=yes ZSH=/home/yourusername/.oh-my-zsh sh tools/install.sh --unattended'
+    - curtin in-target -- su - yourusername -c 'grep -qxF "export NVM_DIR=\"/home/yourusername/.nvm\"" /home/yourusername/.zshrc || printf "\nexport NVM_DIR=\"/home/yourusername/.nvm\"\n[ -s \"/home/yourusername/.nvm/nvm.sh\" ] && . \"/home/yourusername/.nvm/nvm.sh\"\n" >> /home/yourusername/.zshrc'
     - curtin in-target -- su - yourusername -c 'git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-/home/yourusername/.oh-my-zsh/custom}/plugins/zsh-autosuggestions'
     - curtin in-target -- su - yourusername -c 'git clone https://github.com/zsh-users/zsh-syntax-highlighting ${ZSH_CUSTOM:-/home/yourusername/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting'
     - curtin in-target -- usermod -s /usr/bin/zsh yourusername
