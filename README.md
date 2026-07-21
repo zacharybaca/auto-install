@@ -83,7 +83,7 @@ Choose a strong, memorable passphrase — you will need to type it on every boot
 
 ```yaml
 late-commands:
-  - curtin in-target -- su - yourusername -c '... echo "ssh-ed25519 YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys ...'
+  - curtin in-target -- su - yourusername -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo "ssh-ed25519 YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
 ```
 
 Replace `YOUR_PUBLIC_KEY_HERE` with the full public key string from `~/.ssh/id_ed25519.pub` (the entire line, including the leading `ssh-ed25519` type prefix). If you don't have one yet, generate it on your other machine first:
@@ -188,7 +188,7 @@ diskutil eject /dev/diskN
 1. Power off the Surface Laptop 4 completely.
 2. Hold **Volume Up** and press the **Power** button. Release both once the Surface logo appears. This boots into UEFI.
 3. Make the following changes:
-   - **Secure Boot** → Leave **enabled** (the Surface Linux kernel MOK enrollment handles this automatically).
+   - **Secure Boot** → Leave **enabled** (you will enroll the Surface kernel MOK key on first reboot — this requires a manual interactive step at the blue MOK Manager screen).
    - **Boot order** → Move **USB Storage** to the top of the list.
 4. Save and exit.
 

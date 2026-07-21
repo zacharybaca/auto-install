@@ -4,8 +4,8 @@ autoinstall:
   identity:
     hostname: surface-laptop
     password: '$6$YOUR_HASHED_PASSWORD'
-    realname: Zachary Baca
-    username: zacharybaca
+    realname: Your Full Name
+    username: yourusername
   ssh:
     install-server: true
     allow-pw: false
