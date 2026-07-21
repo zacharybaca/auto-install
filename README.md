@@ -231,7 +231,7 @@ diskutil eject /dev/diskN
 
 ```bash
 uname -r
-# Expected output contains "surface", e.g.: 6.1.x-surface
+# Expected output contains "surface", e.g.: 6.x.x-surface (version varies)
 ```
 
 4. Verify the AMD microcode is loaded:
