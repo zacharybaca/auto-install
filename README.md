@@ -185,25 +185,22 @@ Your seedfrom URL will be `http://<PREP_MACHINE_IP>:8000/` (trailing slash requi
 
 ---
 
-### Option B — GitHub (public template or secret Gist)
+### Option B — GitHub Pages (public sanitized template)
 
-**Using this repository's raw URL** serves the sanitized template — useful for testing the flow, but all credentials will be placeholders. The URL is:
+This repository now includes a GitHub Pages-friendly copy of the sanitized template in `/docs`. Once GitHub Pages is enabled for this repository with **Deploy from a branch** → **main** → **/docs**, the seed URL will be:
 
 ```
-https://raw.githubusercontent.com/zacharybaca/auto-install/main/
+https://zacharybaca.github.io/auto-install/
 ```
 
-**For a real installation with your actual credentials**, use a [secret GitHub Gist](https://gist.github.com):
+Cloud-init will then fetch:
 
-1. Go to <https://gist.github.com> and create a **secret** gist (not public).
-2. Add two files named exactly `user-data` and `meta-data`, pasting your filled-in versions.
-3. Click the **Raw** button on each file. The raw URL for a gist file looks like:
-   ```
-   https://gist.githubusercontent.com/YOUR_USER/GIST_ID/raw/
-   ```
-   Use the URL up to and including the trailing `/` (before the filename) as your seedfrom value.
+- `https://zacharybaca.github.io/auto-install/user-data`
+- `https://zacharybaca.github.io/auto-install/meta-data`
 
-> Secret gists are not indexed but are accessible to anyone with the URL. Treat the URL as a secret, and **delete the gist immediately after installation**.
+Use the base URL with the trailing slash as your seedfrom value.
+
+> **Important:** This hosted copy is intentionally sanitized. Do not commit a personalized `user-data` file with real credentials to a public repository. If you need to host a filled-in version remotely, use a private location you control and remove it after installation.
 
 ---
 
