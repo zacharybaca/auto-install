@@ -65,6 +65,8 @@ wifis:
         password: "YourWiFiPassword"   # replace with your Wi-Fi password
 ```
 
+> ⚠️ **Security:** `user-data` stores your Wi-Fi password in plaintext. **Do not commit this file to a public repository.** After installation, securely delete the `CIDATA` USB or overwrite the file.
+
 ### 1c. Set a strong LUKS disk-encryption passphrase
 
 ```yaml
@@ -214,7 +216,7 @@ diskutil eject /dev/diskN
 
 5. When prompted (if Secure Boot MOK enrollment appears), follow the on-screen instructions to enroll the Surface kernel signing key. This typically involves:
    - Selecting **"Enroll MOK"**
-   - Entering the password set by the `linux-surface-secureboot-mok` package (usually `surface` — check the Surface Linux project docs if this has changed)
+   - Entering the MOK enrollment password set by the `linux-surface-secureboot-mok` package. Check the [linux-surface Secure Boot documentation](https://github.com/linux-surface/linux-surface/wiki/Secure-Boot) for the current default and instructions on changing it.
    - Rebooting to complete enrollment
 
 6. The installer will reboot automatically when finished. **Remove both USB drives before the machine boots again**, or it may attempt to reinstall.
