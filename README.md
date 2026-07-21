@@ -185,28 +185,22 @@ Your seedfrom URL will be `http://<PREP_MACHINE_IP>:8000/` (trailing slash requi
 
 ---
 
-### Option B — GitHub Pages (public sanitized template)
+### Option B — GitHub Gist (hosted template)
 
-This repository now includes a GitHub Pages-friendly copy of the sanitized template in `/docs`. Once GitHub Pages is enabled with **Deploy from a branch** → **main** → **/docs**, the seed URL follows this pattern:
-
-```
-https://<OWNER>.github.io/<REPOSITORY>/
-```
-
-If you fork or rename the repository, replace `<OWNER>` and `<REPOSITORY>` accordingly. For this repository, the seed URL is:
+Create a Gist that contains exactly two files named `user-data` and `meta-data` (sanitized or private if it contains real credentials). Then use this seed URL pattern:
 
 ```
-https://zacharybaca.github.io/auto-install/
+http://gist.githubusercontent.com/<GIST_OWNER>/<GIST_ID>/raw/<REVISION>/
 ```
 
-Cloud-init will then fetch `user-data` and `meta-data` from that base URL. For this repository, that means:
+Cloud-init will fetch:
 
-- `https://zacharybaca.github.io/auto-install/user-data`
-- `https://zacharybaca.github.io/auto-install/meta-data`
+- `http://gist.githubusercontent.com/<GIST_OWNER>/<GIST_ID>/raw/<REVISION>/user-data`
+- `http://gist.githubusercontent.com/<GIST_OWNER>/<GIST_ID>/raw/<REVISION>/meta-data`
 
-Use the base URL with the trailing slash as your seedfrom value.
+Use the base URL with the trailing slash as your seedfrom value. GitHub will redirect the request to HTTPS automatically.
 
-> **Important:** This hosted copy is intentionally sanitized. Do not commit a personalized `user-data` file with real credentials to a public repository. If you need to host a filled-in version remotely, use a private location you control and remove it after installation.
+> **Important:** Do not commit a personalized `user-data` file with real credentials to a public repository. If you host a filled-in version in a Gist, keep it private/secret and delete it after installation.
 
 ---
 
