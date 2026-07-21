@@ -23,19 +23,17 @@ This repository contains an unattended Ubuntu installation configuration (`user-
 
 ## Prerequisites
 
-- A second computer to prepare the USB drives (Linux, macOS, or Windows)
-- Two USB drives:
-  - **USB-A #1** — Ubuntu 22.04 LTS installer ISO (≥ 4 GB)
-  - **USB-A #2** — Autoinstall config drive (any size ≥ 64 MB); or you can serve the config over HTTP
-- A USB-A hub or USB-C adapter (the Surface Laptop 4 AMD has one USB-A and one USB-C port)
-- Internet connection during installation (Wi-Fi is configured automatically)
+- A second computer to prepare the installation (Linux, macOS, or Windows)
+- One USB drive: Ubuntu 22.04 LTS installer ISO (≥ 4 GB)
+- A USB-C to ethernet adapter — the Surface Laptop 4 AMD has no built-in ethernet port; wired ethernet is required so the installer can reach the HTTP server that serves `user-data` and `meta-data`
+- Internet connection during installation (Wi-Fi is configured automatically after the config is fetched)
 - The Surface Linux kernel requires a MOK (Machine Owner Key) to be enrolled for Secure Boot. **This requires an interactive step** at the blue MOK Manager screen on first reboot — selecting "Enroll MOK" and entering the enrollment password is not automatic.
 
 ---
 
 ## Step 1 — Customize `user-data` Before Anything Else
 
-Open `user-data` and update every placeholder before you put it on a USB drive. **Do not skip this.**
+Open `user-data` and update every placeholder before serving it. **Do not skip this.**
 
 ### 1a. Set your identity
 
@@ -65,7 +63,7 @@ wifis:
         password: "YourWiFiPassword"   # replace with your Wi-Fi password
 ```
 
-> ⚠️ **Security:** `user-data` stores your Wi-Fi password in plaintext and contains other sensitive values. The copy in this repository is a **sanitized template** with placeholder values — never commit a personalized copy with real credentials to a public repository. Keep your filled-in `user-data` untracked (e.g., add it to `.gitignore`) or only store it locally. After installation, securely delete the `CIDATA` USB or overwrite the file.
+> ⚠️ **Security:** `user-data` stores your Wi-Fi password in plaintext and contains other sensitive values. The copy in this repository is a **sanitized template** with placeholder values — never commit a personalized copy with real credentials to a public repository. Keep your filled-in `user-data` untracked (e.g., add it to `.gitignore`) or only store it locally. Serve it only from a local HTTP server on your trusted network, or from a **private** repository / secret Gist if using GitHub (see Step 4). After installation is complete, stop the HTTP server and delete any remote copies of the filled-in file.
 
 ### 1c. Set a strong LUKS disk-encryption passphrase
 
@@ -111,7 +109,7 @@ https://releases.ubuntu.com/22.04/ubuntu-22.04.5-desktop-amd64.iso
 
 ---
 
-## Step 3 — Flash the Ubuntu ISO to USB #1
+## Step 3 — Flash the Ubuntu ISO to USB
 
 ### On Linux / macOS
 
@@ -146,40 +144,70 @@ Use [Rufus](https://rufus.ie/):
 
 ---
 
-## Step 4 — Create the Autoinstall Config Drive (USB #2)
+## Step 4 — Serve the Autoinstall Config Over HTTP
 
-The Ubuntu installer looks for autoinstall configuration on a drive labeled **`CIDATA`** containing two files at its root: `user-data` and `meta-data`.
+Instead of a second USB drive, the Ubuntu installer fetches `user-data` and `meta-data` from an HTTP URL you provide at the GRUB prompt. You have two options.
 
-### On Linux
+---
 
-```bash
-# Create a FAT32 filesystem labeled CIDATA on the partition (e.g. /dev/sdY1)
-sudo mkfs.vfat -F 32 -n CIDATA /dev/sdY1   # replace sdY1 with your second USB partition
+### Option A — Local HTTP server (recommended)
 
-# Mount it
-sudo mkdir -p /mnt/cidata
-sudo mount /dev/sdY1 /mnt/cidata
-
-# Copy the files
-sudo cp user-data /mnt/cidata/user-data
-sudo cp meta-data /mnt/cidata/meta-data
-
-sudo umount /mnt/cidata
-```
-
-### On macOS
+Run a one-liner HTTP server on your preparation machine **in the directory that contains your filled-in `user-data` and `meta-data` files**:
 
 ```bash
-diskutil eraseDisk FAT32 CIDATA MBRFormat /dev/diskN
-cp user-data /Volumes/CIDATA/user-data
-cp meta-data /Volumes/CIDATA/meta-data
-diskutil eject /dev/diskN
+# Linux / macOS
+python3 -m http.server 8000
 ```
 
-### On Windows
+On Windows, open PowerShell in the folder containing the files and run:
 
-1. Format the second USB drive as FAT32 and set the label to **CIDATA** (right-click → Format in Explorer).
-2. Copy `user-data` and `meta-data` to the root of the drive.
+```powershell
+python -m http.server 8000
+```
+
+Then find your preparation machine's local IP address:
+
+```bash
+# Linux
+ip route get 1 | awk '{print $7; exit}'
+
+# macOS
+ipconfig getifaddr en0   # or en1 for Wi-Fi
+
+# Windows (PowerShell)
+(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '127.*' } | Select-Object -First 1).IPAddress
+# Note: if you have multiple interfaces (VPN, Docker, etc.), verify this matches your LAN adapter using `ipconfig`
+```
+
+Your seedfrom URL will be `http://<PREP_MACHINE_IP>:8000/` (trailing slash required — cloud-init appends `user-data` and `meta-data` to it; omitting the slash will cause the fetch to fail).
+
+> **Keep the server running** until the installer has finished downloading the config. You can stop it with `Ctrl+C` once the automated install is clearly underway.
+
+---
+
+### Option B — GitHub (public template or secret Gist)
+
+**Using this repository's raw URL** serves the sanitized template — useful for testing the flow, but all credentials will be placeholders. The URL is:
+
+```
+https://raw.githubusercontent.com/zacharybaca/auto-install/main/
+```
+
+**For a real installation with your actual credentials**, use a [secret GitHub Gist](https://gist.github.com):
+
+1. Go to <https://gist.github.com> and create a **secret** gist (not public).
+2. Add two files named exactly `user-data` and `meta-data`, pasting your filled-in versions.
+3. Click the **Raw** button on each file. The raw URL for a gist file looks like:
+   ```
+   https://gist.githubusercontent.com/YOUR_USER/GIST_ID/raw/
+   ```
+   Use the URL up to and including the trailing `/` (before the filename) as your seedfrom value.
+
+> Secret gists are not indexed but are accessible to anyone with the URL. Treat the URL as a secret, and **delete the gist immediately after installation**.
+
+---
+
+In either case, note your seedfrom URL — you will enter it in the GRUB boot command in Step 6.
 
 ---
 
@@ -196,30 +224,24 @@ diskutil eject /dev/diskN
 
 ## Step 6 — Boot and Run the Installer
 
-1. Plug both USB drives into the Surface Laptop 4. Use a USB hub if needed (one USB-A port + one USB-C port are available).
-2. Power on the Surface. It should boot directly from USB #1.
-3. At the GRUB menu that appears, you have two options:
+1. Plug the Ubuntu installer USB into the Surface Laptop 4. Connect the USB-C ethernet adapter and plug in a network cable so the installer can reach your HTTP server.
+2. Power on the Surface. It should boot directly from the USB.
+3. At the GRUB menu that appears, highlight **"Try or Install Ubuntu"** and press **`e`** to edit the boot entry.
+4. Find the line starting with `linux` and append the following to the end of that line (before `---`):
+   ```
+   autoinstall ds=nocloud-net;seedfrom=http://192.168.1.100:8000/
+   ```
+   Replace `http://192.168.1.100:8000/` with your actual seedfrom URL from Step 4 (local server or Gist). The trailing `/` is required — omitting it will cause the installer to fail to locate the files.
+5. Press **Ctrl+X** or **F10** to boot. The installer will fetch `user-data` and `meta-data` from the URL and begin the automated installation.
 
-   **Option A — Manually trigger autoinstall via GRUB:**
-   - Highlight **"Try or Install Ubuntu"** and press **`e`** to edit the boot entry.
-   - Find the line starting with `linux` and append the following to the end of that line (before `---`):
-     ```
-     autoinstall ds=nocloud
-     ```
-     The installer will scan all attached drives for one labeled `CIDATA`.
-   - Press **Ctrl+X** or **F10** to boot.
+6. The graphical installer may briefly appear, then the automated process takes over. The screen will show installation progress. **Do not touch the keyboard or mouse.**
 
-   **Option B — Let the installer detect CIDATA automatically:**
-   - On Ubuntu 22.04, if a drive labeled `CIDATA` containing `user-data` and `meta-data` is present at boot, the installer will detect and use it without any kernel command-line changes. Simply select **"Try or Install Ubuntu"** and press Enter.
-
-4. The graphical installer may briefly appear, then the automated process takes over. The screen will show installation progress. **Do not touch the keyboard or mouse.**
-
-5. When prompted (if Secure Boot MOK enrollment appears), follow the on-screen instructions to enroll the Surface kernel signing key. This typically involves:
+7. When prompted (if Secure Boot MOK enrollment appears), follow the on-screen instructions to enroll the Surface kernel signing key. This typically involves:
    - Selecting **"Enroll MOK"**
    - Entering the MOK enrollment password set by the `linux-surface-secureboot-mok` package. Check the [linux-surface Secure Boot documentation](https://github.com/linux-surface/linux-surface/wiki/Secure-Boot) for the current default and instructions on changing it.
    - Rebooting to complete enrollment
 
-6. The installer will reboot automatically when finished. **Remove both USB drives before the machine boots again**, or it may attempt to reinstall.
+8. The installer will reboot automatically when finished. **Remove the USB drive before the machine boots again**, or it may attempt to reinstall.
 
 ---
 
@@ -313,7 +335,7 @@ If you manage dotfiles with GNU Stow (installed by the autoinstall), clone your 
 
 | Problem | Fix |
 |---|---|
-| Installer doesn't detect `CIDATA` drive | Ensure the drive is FAT32 and labeled exactly `CIDATA` (all caps). Verify both files are at the root, not in a subfolder. |
+| Installer doesn't fetch config (HTTP error) | Confirm the HTTP server is running and reachable from the Surface. Check your seedfrom URL matches the server IP and port exactly, including the trailing `/`. Verify wired ethernet is connected and the cable/adapter are working. |
 | Wi-Fi not connected during install | Double-check SSID and password in `user-data`. WPA2/WPA3 personal networks are supported; enterprise (802.1X) networks require additional configuration. |
 | LUKS password prompt doesn't appear | The display driver may not be loaded. Connect an external USB keyboard and try typing the passphrase blind — the display will appear once GNOME loads. |
 | Surface touch / stylus not working | Ensure `iptsd` is running: `sudo systemctl status iptsd`. The service is enabled by the installer. |
@@ -328,4 +350,4 @@ If you manage dotfiles with GNU Stow (installed by the autoinstall), clone your 
 - [Ubuntu Autoinstall Reference](https://ubuntu.com/server/docs/install/autoinstall-reference)
 - [linux-surface Project](https://github.com/linux-surface/linux-surface)
 - [Surface Laptop 4 AMD on ArchWiki](https://wiki.archlinux.org/title/Microsoft_Surface)
-- [cloud-init NoCloud data source](https://cloudinit.readthedocs.io/en/latest/reference/datasources/nocloud.html)
+- [cloud-init NoCloud-Net data source](https://cloudinit.readthedocs.io/en/latest/reference/datasources/nocloud.html)
