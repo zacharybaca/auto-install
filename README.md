@@ -29,7 +29,7 @@ This repository contains an unattended Ubuntu installation configuration (`user-
   - **USB-A #2** — Autoinstall config drive (any size ≥ 64 MB); or you can serve the config over HTTP
 - A USB-A hub or USB-C adapter (the Surface Laptop 4 AMD has one USB-A and one USB-C port)
 - Internet connection during installation (Wi-Fi is configured automatically)
-- The Surface Laptop 4's UEFI Secure Boot keys must be enrolled for the Surface kernel Secure Boot MOK. **This requires a manual interactive step** at the blue MOK Manager screen on the first reboot after installation (see Step 6).
+- The Surface Linux kernel requires a MOK (Machine Owner Key) to be enrolled for Secure Boot. **This requires an interactive step** at the blue MOK Manager screen on first reboot — selecting "Enroll MOK" and entering the enrollment password is not automatic.
 
 ---
 
@@ -65,7 +65,7 @@ wifis:
         password: "YourWiFiPassword"   # replace with your Wi-Fi password
 ```
 
-> ⚠️ **Security:** `user-data` stores your Wi-Fi password in plaintext. **Do not commit a file containing real credentials to a public repository.** To keep a personalized copy locally without accidentally committing it, copy the template to `user-data.local` (already covered by `.gitignore`) and work from that file. After installation, securely delete the `CIDATA` USB or overwrite the file.
+> ⚠️ **Security:** `user-data` stores your Wi-Fi password in plaintext and contains other sensitive values. The copy in this repository is a **sanitized template** with placeholder values — never commit a personalized copy with real credentials to a public repository. Keep your filled-in `user-data` untracked (e.g., add it to `.gitignore`) or only store it locally. After installation, securely delete the `CIDATA` USB or overwrite the file.
 
 ### 1c. Set a strong LUKS disk-encryption passphrase
 
@@ -83,10 +83,10 @@ Choose a strong, memorable passphrase — you will need to type it on every boot
 
 ```yaml
 late-commands:
-  - curtin in-target -- su - yourusername -c '... echo "ssh-ed25519 YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys ...'
+  - curtin in-target -- su - yourusername -c 'mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo "ssh-ed25519 YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
 ```
 
-Replace the entire `ssh-ed25519 YOUR_PUBLIC_KEY_HERE` placeholder with the full public-key line from `~/.ssh/id_ed25519.pub` (the complete line starting with `ssh-ed25519`). If you don't have one yet, generate it on your other machine first:
+Replace `YOUR_PUBLIC_KEY_HERE` with the full public key string from `~/.ssh/id_ed25519.pub` (the entire line, including the leading `ssh-ed25519` type prefix). If you don't have one yet, generate it on your other machine first:
 
 ```bash
 ssh-keygen -t ed25519 -C "your@email.com"
@@ -153,8 +153,8 @@ The Ubuntu installer looks for autoinstall configuration on a drive labeled **`C
 ### On Linux
 
 ```bash
-# Create a FAT32 filesystem labeled CIDATA on the first partition
-sudo mkfs.vfat -F 32 -n CIDATA /dev/sdY1   # replace sdY1 with your second USB drive's first partition
+# Create a FAT32 filesystem labeled CIDATA on the partition (e.g. /dev/sdY1)
+sudo mkfs.vfat -F 32 -n CIDATA /dev/sdY1   # replace sdY1 with your second USB partition
 
 # Mount it
 sudo mkdir -p /mnt/cidata
@@ -188,7 +188,7 @@ diskutil eject /dev/diskN
 1. Power off the Surface Laptop 4 completely.
 2. Hold **Volume Up** and press the **Power** button. Release both once the Surface logo appears. This boots into UEFI.
 3. Make the following changes:
-   - **Secure Boot** → Leave **enabled** (the Surface Linux kernel MOK enrollment handles this automatically).
+   - **Secure Boot** → Leave **enabled** (you will enroll the Surface kernel MOK key on first reboot — this requires a manual interactive step at the blue MOK Manager screen).
    - **Boot order** → Move **USB Storage** to the top of the list.
 4. Save and exit.
 
